@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8E78801A23F08268005318C9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 8E78801923F08268005318C9 /* main.c */; };
+		8E78802223F082C0005318C9 /* matrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 8E78802123F082C0005318C9 /* matrix.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		8E78801623F08268005318C9 /* mitee-lqr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mitee-lqr"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E78801923F08268005318C9 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		8E78802023F082C0005318C9 /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
+		8E78802123F082C0005318C9 /* matrix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = matrix.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,7 +44,9 @@
 		8E78800D23F08267005318C9 = {
 			isa = PBXGroup;
 			children = (
-				8E78801823F08268005318C9 /* mitee-lqr */,
+				8E78802023F082C0005318C9 /* matrix.h */,
+				8E78802123F082C0005318C9 /* matrix.c */,
+				8E78801923F08268005318C9 /* main.c */,
 				8E78801723F08268005318C9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,14 +57,6 @@
 				8E78801623F08268005318C9 /* mitee-lqr */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		8E78801823F08268005318C9 /* mitee-lqr */ = {
-			isa = PBXGroup;
-			children = (
-				8E78801923F08268005318C9 /* main.c */,
-			);
-			path = "mitee-lqr";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,6 +116,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E78802223F082C0005318C9 /* matrix.c in Sources */,
 				8E78801A23F08268005318C9 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
