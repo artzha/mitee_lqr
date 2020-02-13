@@ -73,13 +73,13 @@ Matrix* matrix_mult(Matrix *mult, Matrix *mcand) {
     matrix_ctor(mat, mult->rows, mcand->cols);
     
     /* Compute matrix product*/
-    for (int i = 0; i < mat->rows; ++i) {
-        for (int k = 0; k < mat->cols; ++k) {
+    for (int i = 0; i < mult->rows; ++i) {
+        for (int j = 0; j < mult->cols; ++j) {
             double running_sum = 0;
-            for (int j = 0; j < mult->cols; ++j) {
-                running_sum += mult->arr[i][j]*mcand->arr[j][i];
+            for (int k = 0; k < mat->rows; ++k) {
+                running_sum += mult->arr[i][k]*mcand->arr[k][i];
             } // compute sum of row i col j
-            mat->arr[i][k] = running_sum;
+            mat->arr[i][j] = running_sum;
         } // loop through each column
     } // loop through each row
     
