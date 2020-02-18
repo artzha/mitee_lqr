@@ -12,6 +12,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
+    TODO: Longterm Goals (in order of priority) :
+        1. Restructure matrix ADT to represent sparse matrices
+            more efficiently
+        2. Optimize matrix by matrix operations
+ */
+
 typedef struct MatrixStruct {
     int rows, cols;
     double **arr;
@@ -20,6 +27,24 @@ typedef struct MatrixStruct {
 void matrix_ctor(Matrix* mat, int r, int c);
 
 void matrix_dtor(Matrix *mat);
+
+/*
+ TODO: Multiplies all entries in matrix by scalar, saves result back
+        into original matrix
+ */
+void matrix_scal_mult(Matrix *mat, double scalar);
+
+/* Edits specific entry in matrix with value */
+void matrix_fill(Matrix *mat, int row, int col, double value) {
+    if (row >= mat->rows || col >= mat->cols) return;
+    mat->arr[row][col] = value;
+}
+
+/*
+ TODO: Raises matrix to the exponent and results result in output matrix
+ */
+Matrix* matrix_exp(Matrix *mat);
+
 /*
  Copies entries of arr into row or col of matrix, denoted by type parameter
  Setting type = 'R' fills row and type = 'C' fills col
