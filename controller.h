@@ -11,10 +11,8 @@
 
 #include <stdio.h>
 #include <gsl/gsl_matrix.h>
-<<<<<<< HEAD
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
-=======
 
 typedef struct ControllerState {
     /* Constants State Paramters */
