@@ -11,11 +11,10 @@
 
 #include <stdio.h>
 #include <gsl/gsl_matrix.h>
+<<<<<<< HEAD
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
-
-// timestep to used for descretized detumbling procedure
-#define TIMESTEP    4
+=======
 
 typedef struct ControllerState {
     /* Constants State Paramters */
@@ -33,6 +32,7 @@ typedef struct ControllerState {
     gsl_matrix* B_d;
     gsl_matrix* P;
     gsl_matrix* K;
+    gsl_matrix* I_6, Zero_6; // 6x6 identity/zero matrices
 } Controller;
 
 typedef struct SensorState {
