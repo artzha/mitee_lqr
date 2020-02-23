@@ -10,19 +10,29 @@
 #define controller_h
 
 #include <stdio.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_blas.h>
 
 // timestep to used for descretized detumbling procedure
 #define TIMESTEP    4
 
 typedef struct ControllerState {
+    /* Constants State Paramters */
+    double eq; // equilibrium pt
     int dt;
     double J12, J23, J13;
-    double B_b_prev[3];
-//    Matrix B_b;
-//    Matrix I_6; // 6x6 identity matrix
-//    Matrix A_c, B_c;
-//    Matrix *A_d, *B_d;
-    
+    gsl_matrix* A_c;
+    gsl_matrix* A_d;
+    gsl_matrix* Q;
+    gsl_matrix* R;
+    gsl_matrix* J;
+    /* Dynamic State Parameters */
+    gsl_matrix* B_b;
+    gsl_matrix* B_c;
+    gsl_matrix* B_d;
+    gsl_matrix* P;
+    gsl_matrix* K;
 } Controller;
 
 typedef struct SensorState {
