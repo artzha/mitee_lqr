@@ -66,7 +66,15 @@ void computeDynamicInputs(Controller *cntl, int time) {
     /* Poll magnetometers for magnetic field readings */
     
     /* Recompute B_c matrix */
-    gsl_matrix* J_inv;
+    gsl_matrix* J_inv = invert(cntl->J);
+    gsl_matrix* Bnot_mul_Bnot = gsl_matrix_mul_elements(cntl->Bnot_b, cntl->Bnot_b);   
+    gsl_matrix* Btrans;
+    memcpy(Btrans->data, cntl->B_b, 3*3*sizeof(double));
+    gsl_matrix_transpose(B_trans); // transposes B_b 
+    gsl_matrix* Btrans_mul_B_b = gsl_matrix_mul_elements(Btrans, cntl->B_b);
+    gsl_matrix* B_div          = gsl_matrix_div_elements(Bnot_mul_Bnot, Btrans_mul_B_b);
+
+    cntl->B_c = gsl_matrix_mul_elements(J_inv, B_div);
     
     /* Recompute B_d matrix */
     

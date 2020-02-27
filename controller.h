@@ -28,6 +28,7 @@ typedef struct ControllerState {
     gsl_matrix* J;
     /* Dynamic State Parameters */
     gsl_matrix* B_b;
+    gsl_matrix* Bnot_b;
     gsl_matrix* B_c;
     gsl_matrix* B_d;
     gsl_matrix* P;
