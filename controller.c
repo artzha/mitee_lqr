@@ -174,8 +174,8 @@ void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S) {
         S_inverse = gsl_matrix_alloc(12, 12);
         H_squared = gsl_matrix_alloc(12, 12);
 
-        // S_prev should start as identity
-        gsl_matrix_set_identity(S_prev);
+        // S should start as identity
+        gsl_matrix_set_identity(S);
     } // if
 
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, H, H, 0.0, H_squared);
