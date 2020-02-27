@@ -10,6 +10,7 @@
 #define controller_h
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
@@ -18,7 +19,8 @@ typedef struct ControllerState {
     /* Constants State Paramters */
     double eq; // equilibrium pt
     int dt;
-    double J12, J23, J13;
+    double J12, J23, J31;
+    double NR_tolerance; // acceptable tolerance for Newton-Raphson process
     gsl_matrix* A_c;
     gsl_matrix* A_d;
     gsl_matrix* Q;
@@ -45,10 +47,10 @@ void initializeController(Controller *cntl);
 void computeDynamicInputs(Controller *cntl, int time);
 
 /* Runs Newton Rhapson process to compute P(t) matrix*/
-void computePMatrix(/* Inputs */);
+void computePMatrix(Controller* cntl);
 
 /* Helper function for compute P(t) */
-void runNewtonRhapsonProcess(/* Inputs*/);
+void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S);
 
 /* Computes gain matrix K for magnetorquers*/
 void computeGainMatrix(/* Inputs */);
