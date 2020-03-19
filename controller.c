@@ -61,21 +61,33 @@ void initializeController(Controller *cntl) {
 } // initializeController
 
 void computeDynamicInputs(Controller *cntl, int time) {
+    // declare all matrices
+    static gsl_matrix* J_inv          = NULL;
+    static gsl_matrix* quotient       = NULL;
+    static gsl_matrix* J_inv_quotient = NULL;
+
+
+    // allocate memory on first function call
+    if (!J_inv) {
+        J_inv          = gsl_matrix_alloc(3, 3);
+        quotient       = gsl_matrix_alloc(3, 3);
+        J_inv_quotient = gsl_matrix_alloc(3, 3);
+    } // if
+
     // TODO: Figure out how to compute x position
     
     /* Poll magnetometers for magnetic field readings */
     
     /* Recompute B_c matrix */
-    gsl_matrix* J_inv = invert(cntl->J);
-    gsl_matrix* Bnot_mul_Bnot = gsl_matrix_mul_elements(cntl->Bnot_b, cntl->Bnot_b);   
-    gsl_matrix* Btrans;
-    memcpy(Btrans->data, cntl->B_b, 3*3*sizeof(double));
-    gsl_matrix_transpose(B_trans); // transposes B_b 
-    gsl_matrix* Btrans_mul_B_b = gsl_matrix_mul_elements(Btrans, cntl->B_b);
-    gsl_matrix* B_div          = gsl_matrix_div_elements(Bnot_mul_Bnot, Btrans_mul_B_b);
+    invert(cntl->J, J_inv);
 
-    cntl->B_c = gsl_matrix_mul_elements(J_inv, B_div);
+    double bT_b;
+    gsl_blas_ddot(cntl->b, cntl->b, bT_b);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1/bT_b, cntl->bmat, cntl->bmat, 0.0, quotient);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0,    J_inv,      quotient,   0.0, J_inv_quotient);
     
+    concatenate_vertical(cntl->Zero_3, J_inv_quotient, cntl->B_c);
+
     /* Recompute B_d matrix */
     
     /* Update satellite position using sensor measurements */
@@ -200,6 +212,38 @@ bool newtonRaphsonConverged(gsl_matrix* S, gsl_matrix* S_prev) {
     return true;
 } // newtonRaphsonConverged
 
+/* Computes gain matrix K for magnetorquers*/
+void computeGainMatrix(Controller* cntl) {
+    // declare all matrices
+    static gsl_matrix* P_Ad                = NULL;
+    static gsl_matrix* BdT_P_Ad            = NULL;
+    static gsl_matrix* P_Bd                = NULL;
+    static gsl_matrix* BdT_P_Bd            = NULL;
+    static gsl_matrix* R_plus_BdT_P_Bd     = NULL;
+    static gsl_matrix* R_plus_BdT_P_Bd_inv = NULL;
+
+    // allocate memory on first function call
+    if (!P_Ad) {
+        P_Ad                = gsl_matrix_alloc(6, 6);
+        BdT_P_Ad            = gsl_matrix_alloc(3, 6);
+        P_Bd                = gsl_matrix_alloc(6, 3);
+        BdT_P_Bd            = gsl_matrix_alloc(3, 3);
+        R_plus_BdT_P_Bd     = gsl_matrix_alloc(3, 3);
+        R_plus_BdT_P_Bd_inv = gsl_matrix_alloc(3, 3);
+    } // if
+
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, cntl->P,   cntl->A_d, 0.0, P_Ad);
+    gsl_blas_dgemm(CblasTrans,   CblasNoTrans, 1.0, cntl->B_d, P_Ad,      0.0, BdT_P_Ad);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, cntl->P,   cntl->B_d, 0.0, P_Bd);
+    gsl_blas_dgemm(CblasTrans,   CblasNoTrans, 1.0, cntl->B_d, P_Bd,      0.0, BdT_P_Bd);
+
+    gsl_matrix_memcpy(R_plus_BdT_P_Bd, cntl->R);
+    gsl_matrix_add(R_plus_BdT_P_Bd, BdT_P_Bd);
+    invert(R_plus_BdT_P_Bd, R_plus_BdT_P_Bd_inv);
+
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, R_plus_BdT_P_Bd_inv, BdT_P_Ad, 0.0, cntl->K);
+} // computeGainMatrix
+
 void sendMTInputs(/* Inputs */) {
     /* Compute new inputs to magnetorquers using gain matrix K */
     
@@ -208,7 +252,7 @@ void sendMTInputs(/* Inputs */) {
 } // sendMTInputs
 
 // concatenate four matrices into a single larger matrix
-void concatenate2x2(gsl_matrix* a, gsl_matrix* b, gsl_matrix* c, gsl_matrix* d, gsl_matrix* result){
+void concatenate2x2(gsl_matrix* a, gsl_matrix* b, gsl_matrix* c, gsl_matrix* d, gsl_matrix* result) {
     gsl_matrix_view aview = gsl_matrix_submatrix(result, 0,        0,        a->size1, a->size2);
     gsl_matrix_view bview = gsl_matrix_submatrix(result, 0,        a->size2, b->size1, b->size2);
     gsl_matrix_view cview = gsl_matrix_submatrix(result, a->size1, 0,        c->size1, c->size2);
@@ -218,6 +262,15 @@ void concatenate2x2(gsl_matrix* a, gsl_matrix* b, gsl_matrix* c, gsl_matrix* d, 
     gsl_matrix_memcpy( &bview.matrix, b);
     gsl_matrix_memcpy( &cview.matrix, c);
     gsl_matrix_memcpy( &dview.matrix, d);
+} // concatenate2x2
+
+// concatenate two matrices vertically
+void concatenate_vertical(gsl_matrix* a, gsl_matrix* b, gsl_matrix* result) {
+    gsl_matrix_view aview = gsl_matrix_submatrix(result, 0,        0, a->size1, a->size2);
+    gsl_matrix_view bview = gsl_matrix_submatrix(result, a->size1, 0, b->size1, b->size2);
+
+    gsl_matrix_memcpy( &aview.matrix, a);
+    gsl_matrix_memcpy( &bview.matrix, b);
 } // concatenate2x2
 
 // invert a matrix using LU decomposition

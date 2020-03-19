@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
@@ -27,13 +28,13 @@ typedef struct ControllerState {
     gsl_matrix* R;
     gsl_matrix* J;
     /* Dynamic State Parameters */
-    gsl_matrix* B_b;
-    gsl_matrix* Bnot_b;
+    gsl_vector* b;
+    gsl_matrix* bmat;
     gsl_matrix* B_c;
     gsl_matrix* B_d;
     gsl_matrix* P;
     gsl_matrix* K;
-    gsl_matrix* I_6, Zero_6; // 6x6 identity/zero matrices
+    gsl_matrix* I_6, Zero_3, Zero_6; // identity/zero matrices
 } Controller;
 
 typedef struct SensorState {
@@ -53,10 +54,22 @@ void computePMatrix(Controller* cntl);
 /* Helper function for compute P(t) */
 void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S);
 
+// check if S matrix from Newton-Raphson iteration has converged
+bool newtonRaphsonConverged(gsl_matrix* S, gsl_matrix* S_prev);
+
 /* Computes gain matrix K for magnetorquers*/
-void computeGainMatrix(/* Inputs */);
+void computeGainMatrix(Controller* cntl);
 
 /* Sends optimal inputs to magnetorquers for stabilization procedure */
 void sendMTInputs(/* Inputs */);
+
+// concatenate four matrices into a single larger matrix
+void concatenate2x2(gsl_matrix* a, gsl_matrix* b, gsl_matrix* c, gsl_matrix* d, gsl_matrix* result);
+
+// concatenate two matrices vertically
+void concatenate_vertical(gsl_matrix* a, gsl_matrix* b, gsl_matrix* result);
+
+// invert a matrix using LU decomposition
+void invert(gsl_matrix* mat, gsl_matrix* inv);
 
 #endif /* controller_h */
