@@ -11,6 +11,8 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_permutation.h>
 
+#include "controller.h"
+
 int main() {
     int n = 3;
 

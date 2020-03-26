@@ -9,78 +9,132 @@
 #include "controller.h"
 
 void initializeController(Controller *cntl) {
+    /* Allocate all dynamic memory */
+    /* Constants State Parameters */
+    cntl->A_c = gsl_matrix_alloc(6, 6);
+    cntl->A_d = gsl_matrix_alloc(6, 6);
+    cntl->Q   = gsl_matrix_alloc(6, 6);
+    cntl->R   = gsl_matrix_alloc(3, 3);
+    cntl->J   = gsl_matrix_alloc(3, 3);
+    /* Dynamic State Parameters */
+    cntl->b    = gsl_vector_alloc(3);
+    cntl->bmat = gsl_matrix_alloc(3, 3);
+    cntl->B_c  = gsl_matrix_alloc(6, 3);
+    cntl->B_d  = gsl_matrix_alloc(6, 3);
+    cntl->P    = gsl_matrix_alloc(6, 6);
+    cntl->K    = gsl_matrix_alloc(3, 6);
+    /* Identity and Zero matrices */
+    cntl->I_6    = gsl_matrix_alloc(6, 6);
+    cntl->Zero_6 = gsl_matrix_alloc(6, 6);
+    cntl->Zero_3 = gsl_matrix_alloc(3, 3);
+
     /* [kg*m^2] Approx for MiTEE 2 (From Three_MT main.m) */
-    cntl->J12   = -0.7724;
-    cntl->J31   = -0.0463;
-    cntl->J23   = 0.7904;
+    cntl->J12 = -0.7724;
+    cntl->J31 = -0.0463;
+    cntl->J23 = 0.7904;
 
     /* Initialize timestep */
-    cntl->dt    =   1; // 1 second
+    cntl->dt = 1; // 1 second
 
-    /* Initialize equilibrium point */
+    /* TODO: Initialize equilibrium point */
     
     /* Initialize A_c matrix */
     double n                = cntl->eq;
-    double neg_three_nn_J23 =   -3*n*n*cntl->J23;
-    double neg_n_J23        =   -n*cntl->J23;
-    double three_nn_J31     =   3*n*n*cntl->J31;
-    double neg_n_J12        =   -n*cntl->J12;
+    double neg_three_nn_J23 = -3*n*n*cntl->J23;
+    double neg_n_J23        = -n*cntl->J23;
+    double three_nn_J31     = 3*n*n*cntl->J31;
+    double neg_n_J12        = -n*cntl->J12;
 
-    double A_c      =  {0, 0, n, 1, 0, 0,
-                        0, 0, 0,  0, 1, 0,
-                        -n, 0, 0, 0, 0, 1,
-                        neg_three_nn_J23, 0, 0, 0, 0, neg_n_J23,
-                        0, three_nn_J31, 0, 0, 0, 0,
-                        0, 0, 0, neg_n_J12, 0, 0};
+    double A_c = {0,                0,            n, 1,         0, 0,
+                  0,                0,            0, 0,         1, 0,
+                  -n,               0,            0, 0,         0, 1,
+                  neg_three_nn_J23, 0,            0, 0,         0, neg_n_J23,
+                  0,                three_nn_J31, 0, 0,         0, 0,
+                  0,                0,            0, neg_n_J12, 0, 0};
+    memcpy(cntl->A_c->data, A_c, 6*6*sizeof(double));
 
-    int col_sz      =   6;
-    int row_sz      =   6;
-    cntl->A_c       =   gsl_matrix_alloc(row_sz, col_sz);
-    memcpy(cntl->A_c->data, A_c, col_sz*row_sz*sizeof(double));
     /* Initialize A_d matrix */
-    memcpy(cntl->A_d->data, A_c, col_sz*row_sz*sizeof(double));
+    gsl_matrix_memcpy(cntl->A_d, cntl->A_c);
     gsl_matrix_scale(cntl->A_d, cntl->dt);
     gsl_linalg_exponential_ss(cntl->A_d, cntl->A_d, 0.01);
-    
-    /* Initialize top half of B_c matrix to 0s */
-    double zeros_three =   {0, 0, 0};
-    gsl_matrix_set_row(cntl->B_c, zeros_three, 0);
-    gsl_matrix_set_row(cntl->B_c, zeros_three, 1);
-    gsl_matrix_set_row(cntl->B_c, zeros_three, 2);
 
     /* Initialize J matrix */
-    double J        =   {0.007, 0, 0,
-                         0, 0.0320, 0,
-                         0, 0, 0.0323};
-    memcpy(cntl->J->data, J, col_sz*row_sz*sizeof(double));
+    double J = {0.007, 0,      0,
+                0,     0.0320, 0,
+                0,     0,      0.0323};
+    memcpy(cntl->J->data, J, 3*3*sizeof(double));
+
+    /* Initialize identity and zero matrices */
+    gsl_matrix_set_identity(cntl->I_6);
+    gsl_matrix_set_zero(cntl->Zero_6);
+    gsl_matrix_set_zero(cntl->Zero_3);
 
     /* Initialize Q (position) and R (inputs) cost matrices */
+    double Q = {1.5e-7, 0,      0,      0,      0,      0,
+                0,      1.5e-7, 0,      0,      0,      0,
+                0,      0,      1.5e-7, 0,      0,      0,
+                0,      0,      0,      1.5e-3, 0,      0,
+                0,      0,      0,      0,      1.5e-3, 0,
+                0,      0,      0,      0,      0,      1.5e-3};
+    memcpy(cntl->Q->data, Q, 6*6*sizeof(double));
     
-    /* Initialize initial position */
+    double R = {1e7, 0,   0,
+                0,   1e7, 0,
+                0,   0,   1e7};
+    memcpy(cntl->R->data, R, 6*6*sizeof(double));
+
+    /* TODO: Initialize initial position */
     
 } // initializeController
 
 void computeDynamicInputs(Controller *cntl, int time) {
+    // TODO: Figure out how to compute x position
+
+    /* TODO: Poll magnetometers for magnetic field readings */
+
+    /* Recompute B_d matrix */
+    computeBMatrices(cntl);
+
+    /* TODO: Update satellite position using sensor measurements */
+
+    /* Compute P(t) matrix using recomputed matrices */
+    computePMatrix(cntl);
+
+    /* Compute K(t) gain matrix using P(t) */
+    computeGainMatrix(cntl);
+
+} // computeDynamicInputs
+
+void computeBMatrices(Controller* cntl) {
     // declare all matrices
     static gsl_matrix* J_inv          = NULL;
     static gsl_matrix* quotient       = NULL;
     static gsl_matrix* J_inv_quotient = NULL;
-
+    static gsl_matrix* A_c_inv        = NULL;
+    static gsl_matrix* I_minus_A_d    = NULL;
+    static gsl_matrix* transform      = NULL;
 
     // allocate memory on first function call
     if (!J_inv) {
         J_inv          = gsl_matrix_alloc(3, 3);
         quotient       = gsl_matrix_alloc(3, 3);
         J_inv_quotient = gsl_matrix_alloc(3, 3);
-    } // if
+        A_c_inv        = gsl_matrix_alloc(6, 6);
+        I_minus_A_d    = gsl_matrix_alloc(6, 6);
+        transform      = gsl_matrix_alloc(6, 6);
 
-    // TODO: Figure out how to compute x position
-    
-    /* Poll magnetometers for magnetic field readings */
+        // compute matrices that are constant
+        invert(cntl->J, J_inv);
+
+        invert(cntl->A_c, A_c_inv);
+
+        gsl_matrix_set_identity(I_minus_A_d);
+        gsl_matrix_sub(I_minus_A_d, cntl->A_d);
+
+        gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, A_c_inv, I_minus_A_d, 0.0, transform);
+    } // if
     
     /* Recompute B_c matrix */
-    invert(cntl->J, J_inv);
-
     double bT_b;
     gsl_blas_ddot(cntl->b, cntl->b, bT_b);
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1/bT_b, cntl->bmat, cntl->bmat, 0.0, quotient);
@@ -89,15 +143,8 @@ void computeDynamicInputs(Controller *cntl, int time) {
     concatenate_vertical(cntl->Zero_3, J_inv_quotient, cntl->B_c);
 
     /* Recompute B_d matrix */
-    
-    /* Update satellite position using sensor measurements */
-    
-    /* Compute P(t) matrix using recomputed matrices */
-    computePMatrix();
-    
-    /* Compute K(t) gain matrix using P(t) */
-    
-} // computeDynamicInputs
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, transform, cntl->B_c, 0.0, cntl->B_d);
+} // computeBdMatrix
 
 void computePMatrix(Controller* cntl) {
     // P is computed using the process describe in Appendix B of the Sutherland paper
@@ -182,9 +229,9 @@ void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S) {
 
     // allocate memory on first function call
     if (!S_prev) {
-        S_prev    = gsl_matrix_alloc(12, 12);
-        S_inverse = gsl_matrix_alloc(12, 12);
-        H_squared = gsl_matrix_alloc(12, 12);
+        S_prev          = gsl_matrix_alloc(12, 12);
+        S_inverse       = gsl_matrix_alloc(12, 12);
+        H_squared       = gsl_matrix_alloc(12, 12);
 
         // S should start as identity
         gsl_matrix_set_identity(S);
@@ -245,9 +292,9 @@ void computeGainMatrix(Controller* cntl) {
 } // computeGainMatrix
 
 void sendMTInputs(/* Inputs */) {
-    /* Compute new inputs to magnetorquers using gain matrix K */
+    /* TODO: Compute new inputs to magnetorquers using gain matrix K */
     
-    /* Send inputs to magnetorquers */
+    /* TODO: Send inputs to magnetorquers */
     
 } // sendMTInputs
 

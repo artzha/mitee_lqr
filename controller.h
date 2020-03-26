@@ -17,7 +17,7 @@
 #include <gsl/gsl_blas.h>
 
 typedef struct ControllerState {
-    /* Constants State Paramters */
+    /* Constants State Parameters */
     double eq; // equilibrium pt
     int dt;
     double J12, J23, J31;
@@ -34,7 +34,10 @@ typedef struct ControllerState {
     gsl_matrix* B_d;
     gsl_matrix* P;
     gsl_matrix* K;
-    gsl_matrix* I_6, Zero_3, Zero_6; // identity/zero matrices
+    /* Identity and Zero matrices */
+    gsl_matrix* I_6;
+    gsl_matrix* Zero_6;
+    gsl_matrix* Zero_3;
 } Controller;
 
 typedef struct SensorState {
@@ -47,6 +50,9 @@ void initializeController(Controller *cntl);
 
 /* Computes values for numbers as discrete time steps */
 void computeDynamicInputs(Controller *cntl, int time);
+
+/* Computes B_c(t) and B_d(t) matrices */
+void computeBMatrices(Controller* cntl);
 
 /* Runs Newton Rhapson process to compute P(t) matrix*/
 void computePMatrix(Controller* cntl);
