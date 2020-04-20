@@ -30,16 +30,15 @@ void initializeController(Controller *cntl) {
 
     /* [kg*m^2] Approx for MiTEE 2 (From Three_MT main.m) */
     cntl->J12 = -0.7724;
-    cntl->J31 = -0.0463;
     cntl->J23 = 0.7904;
+    cntl->J31 = -0.0463;
 
-    /* Initialize timestep */
-    cntl->dt = 1; // 1 second
+    cntl->dt = 4; // measured in seconds
+    cntl->mean_motion = 1.1068e-3;
+    cntl->NR_tolerance = 1e-3;
 
-    /* TODO: Initialize equilibrium point */
-    
     /* Initialize A_c matrix */
-    double n                = cntl->eq;
+    double n                = cntl->mean_motion;
     double neg_three_nn_J23 = -3*n*n*cntl->J23;
     double neg_n_J23        = -n*cntl->J23;
     double three_nn_J31     = 3*n*n*cntl->J31;
@@ -92,7 +91,7 @@ void computeDynamicInputs(Controller *cntl, int time) {
 
     /* TODO: Poll magnetometers for magnetic field readings */
 
-    /* Recompute B_d matrix */
+    /* Recompute B_c and B_d matrices */
     computeBMatrices(cntl);
 
     /* TODO: Update satellite position using sensor measurements */
@@ -229,9 +228,9 @@ void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S) {
 
     // allocate memory on first function call
     if (!S_prev) {
-        S_prev          = gsl_matrix_alloc(12, 12);
-        S_inverse       = gsl_matrix_alloc(12, 12);
-        H_squared       = gsl_matrix_alloc(12, 12);
+        S_prev    = gsl_matrix_alloc(12, 12);
+        S_inverse = gsl_matrix_alloc(12, 12);
+        H_squared = gsl_matrix_alloc(12, 12);
 
         // S should start as identity
         gsl_matrix_set_identity(S);

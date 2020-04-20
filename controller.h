@@ -18,9 +18,9 @@
 
 typedef struct ControllerState {
     /* Constants State Parameters */
-    double eq; // equilibrium pt
-    int dt;
-    double J12, J23, J31;
+    double J12, J23, J31; // moments of inertia
+    int dt; // discrete timestep
+    double mean_motion; // mean_motion of the orbit
     double NR_tolerance; // acceptable tolerance for Newton-Raphson process
     gsl_matrix* A_c;
     gsl_matrix* A_d;
