@@ -1,5 +1,12 @@
+# compilation files
+main
+*.o
+
+# xcode files
 xcuserdata/
 mitee-lqr.xcodeproj/
+
+# eclipse files
 .cproject
 .project
-main
+.settings/

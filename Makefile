@@ -1,17 +1,20 @@
 CC=gcc
-CFLAGS=-lm -lgsl -lgslcblas -std=c99
-DEBUG=-g
+CFLAGS=-lm -lgsl -lgslcblas -std=c99 -Wconversion -Wall -Werror -Wextra -pedantic
+DEBUG=-g3
 
 DEPS=controller.o
 OBJ=main.o controller.o
 
-%.o: %.c $(DEPS) 
-	$(CC) $(CFLAGS) -c -o  $@ $<
+main: main.o
+	$(CC) $< $(DEBUG) -o main $(CFLAGS)
 
-lqr.o: $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+main.o: main.c controller.o
+	$(CC) $(CFLAGS) $(DEBUG) -c -o $@ $<
+	
+controller.o: controller.c controller.h
+	$(CC) $(CFLAGS) $(DEBUG) -c -o $@ $<
 
 .PHONY: clean
 
 clean:
-	rm -rf $(ODIR)/*.o *~ core *.dSYM *.o
+	rm main $(OBJ)

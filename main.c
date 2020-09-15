@@ -4,17 +4,10 @@
  *      Author: matblisc
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_permutation.h>
-
 #include "controller.h"
 
 int main() {
-    int n = 3;
+    size_t n = 3;
 
     double A_data[] = {1, 2, 3,
                        0, 1, 4,
@@ -41,8 +34,8 @@ int main() {
     gsl_matrix* product = gsl_matrix_alloc(n, n);
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, A, inverse, 0.0, product);
 
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
             printf("%f ", gsl_matrix_get(product, i, j));
         }
         printf("\n");

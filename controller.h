@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_linalg.h>
@@ -58,7 +60,7 @@ void computeBMatrices(Controller* cntl);
 void computePMatrix(Controller* cntl);
 
 /* Helper function for compute P(t) */
-void runNewtonRaphsonProcess(Controller* cntl, gsl_matrix* H, gsl_matrix* S);
+void runNewtonRaphsonProcess(gsl_matrix* H, gsl_matrix* S);
 
 // check if S matrix from Newton-Raphson iteration has converged
 bool newtonRaphsonConverged(gsl_matrix* S, gsl_matrix* S_prev);
