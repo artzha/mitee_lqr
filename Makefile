@@ -3,15 +3,18 @@ CFLAGS=-lm -lgsl -lgslcblas -std=c99 -Wconversion -Wall -Werror -Wextra -pedanti
 DEBUG=-g3
 
 DEPS=controller.o
-OBJ=main.o controller.o
+OBJ=main.o controller.o external.o
 
-main: main.o
-	$(CC) $< $(DEBUG) -o main $(CFLAGS)
+main: main.o controller.o external.o
+	$(CC) $^ $(DEBUG) -o main $(CFLAGS)
+	
+main.o: main.c controller.h external.h
+	$(CC) $(CFLAGS) $(DEBUG) -c -o $@ $<	
 
-main.o: main.c controller.o
+controller.o: controller.c controller.h external.h
 	$(CC) $(CFLAGS) $(DEBUG) -c -o $@ $<
 	
-controller.o: controller.c controller.h
+external.o: external.c external.h
 	$(CC) $(CFLAGS) $(DEBUG) -c -o $@ $<
 
 .PHONY: clean

@@ -5,42 +5,33 @@
  */
 
 #include "controller.h"
+#include "external.h"
+
+#define NUM_LOOPS 6867
 
 int main() {
-    size_t n = 3;
+    loadSampleData();
 
-    double A_data[] = {1, 2, 3,
-                       0, 1, 4,
-                       5, 6, 0};
+    Controller cntl;
+    initializeController(&cntl);
 
-    double B_data[] = {3, 0, 0,
-                       0, 3, 0,
-                       0, 0, 3};
+    for (int i = 0; i < NUM_LOOPS; ++i) {
+        /* Update measurements from attitude determination and magnetomers */
+        updateSensors(&cntl);
 
-    gsl_matrix* A = gsl_matrix_alloc(n, n);
-    gsl_matrix* B = gsl_matrix_alloc(n, n);
-    memcpy(A->data, A_data, n*n*sizeof(double));
-    memcpy(B->data, B_data, n*n*sizeof(double));
+        /* Recompute B_c and B_d matrices */
+        computeBMatrices(&cntl);
 
-    gsl_matrix* LU = gsl_matrix_alloc(n, n);
-    gsl_matrix_memcpy(LU, A);
-    gsl_permutation* p = gsl_permutation_alloc(n);
-    int signum = 0;
-    gsl_linalg_LU_decomp(LU, p, &signum);
+        /* Compute P(t) matrix using recomputed matrices */
+        computePMatrix(&cntl);
 
-    gsl_matrix* inverse = gsl_matrix_alloc(n, n);
-    gsl_linalg_LU_invert(LU, p, inverse);
+        /* Compute K(t) gain matrix using P(t) */
+        computeGainMatrix(&cntl);
 
-    gsl_matrix* product = gsl_matrix_alloc(n, n);
-    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, A, inverse, 0.0, product);
+        /* Calculate and send magnetorquer inputs */
+        sendMTInputs(&cntl);
 
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            printf("%f ", gsl_matrix_get(product, i, j));
-        }
-        printf("\n");
-    }
-
+    } // while
 
     return 0;
-}
+} // main

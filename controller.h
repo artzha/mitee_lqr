@@ -20,16 +20,14 @@
 
 typedef struct ControllerState {
     /* Constants State Parameters */
-    double J12, J23, J31; // moments of inertia
-    int dt; // discrete timestep
-    double mean_motion; // mean_motion of the orbit
-    double NR_tolerance; // acceptable tolerance for Newton-Raphson process
     gsl_matrix* A_c;
     gsl_matrix* A_d;
     gsl_matrix* Q;
     gsl_matrix* R;
     gsl_matrix* J;
     /* Dynamic State Parameters */
+    gsl_vector* x;
+    gsl_vector* u;
     gsl_vector* b;
     gsl_matrix* bmat;
     gsl_matrix* B_c;
@@ -48,10 +46,10 @@ typedef struct SensorState {
 } Sensors;
 
 /* Declares all matrices and constants needed for LQR controller*/
-void initializeController(Controller *cntl);
+void initializeController(Controller* cntl);
 
-/* Computes values for numbers as discrete time steps */
-void computeDynamicInputs(Controller *cntl, int time);
+/* Updates the angular position, velocities, and magnetic field vector */
+void updateSensors(Controller* cntl);
 
 /* Computes B_c(t) and B_d(t) matrices */
 void computeBMatrices(Controller* cntl);
@@ -69,7 +67,7 @@ bool newtonRaphsonConverged(gsl_matrix* S, gsl_matrix* S_prev);
 void computeGainMatrix(Controller* cntl);
 
 /* Sends optimal inputs to magnetorquers for stabilization procedure */
-void sendMTInputs(/* Inputs */);
+void sendMTInputs(Controller* cntl);
 
 // concatenate four matrices into a single larger matrix
 void concatenate2x2(gsl_matrix* a, gsl_matrix* b, gsl_matrix* c, gsl_matrix* d, gsl_matrix* result);
